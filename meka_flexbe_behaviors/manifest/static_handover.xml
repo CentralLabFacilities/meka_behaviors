@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="static_handover">
+
+	<executable package_path="meka_flexbe_behaviors.static_handover_sm" class="static_handoverSM" />
+	<tagstring>#handover</tagstring>
+	<author>llach</author>
+	<date>Tue Feb 19 2019</date>
+	<description>
+		handover without adaption or gaze
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+	<params>
+
+		<param type="enum" name="hand" default="right" label="hand" hint="Sets the hand">
+			<option value="left" />
+			<option value="right" />
+		</param>
+
+		<param type="boolean" name="carrying" default="False" label="carrying" hint="Sets the carrying" />
+
+	</params>
+
+
+</behavior>
