@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="adaptive_handover">
+
+	<executable package_path="meka_flexbe_behaviors.adaptive_handover_sm" class="adaptive_handoverSM" />
+	<tagstring>#adaptive #myhandisbetterthanyours</tagstring>
+	<author>me</author>
+	<date>Mon Mar 04 2019</date>
+	<description>
+		handover with trajectory adaption
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+	<params>
+
+		<param type="enum" name="hand" default="right" label="hand" hint="Sets the hand">
+			<option value="right" />
+			<option value="left" />
+		</param>
+
+		<param type="boolean" name="carrying" default="False" label="carrying" hint="Sets the carrying" />
+
+	</params>
+
+
+</behavior>
