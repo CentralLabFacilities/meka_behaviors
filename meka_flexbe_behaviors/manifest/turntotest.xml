@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="TurnToTest">
+
+	<executable package_path="meka_flexbe_behaviors.turntotest_sm" class="TurnToTestSM" />
+	<tagstring>#turn</tagstring>
+	<author>llach</author>
+	<date>Thu Apr 11 2019</date>
+	<description>
+		testing new turn to skill
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+	<params>
+
+		<param type="numeric" name="person_stop_dist" default="0.7" label="person_stop_dist" hint="Sets the person_stop_dist">
+			<min value="0.7" />
+			<max value="2" />
+		</param>
+
+	</params>
+
+
+</behavior>
