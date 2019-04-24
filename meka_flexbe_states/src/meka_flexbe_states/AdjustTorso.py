@@ -78,15 +78,6 @@ class AdjustTorso(EventState):
             torso_state = self._subs.get_last_msg(self.TORSO_STATE_TOPIC)
             people = self._subs.get_last_msg(self.PEOPLE_TOPIC)
 
-            if self.with_j1:
-                faces = self._subs.get_last_msg(self.FACES_TOPIC)
-                if faces is None:
-                    Logger.loginfo('no faces')
-                    continue
-                if faces.count < 1:
-                    Logger.loginfo('no faces')
-                    continue
-
             if torso_state is None:
                 Logger.loginfo('no torso state')
             elif people is None:
@@ -99,17 +90,16 @@ class AdjustTorso(EventState):
 
         Logger.loginfo('Got initial people and torso state.')
 
+        # control loop
         while True:
 
             # first, get new data if not None
             ts = self._subs.get_last_msg(self.TORSO_STATE_TOPIC)
             pe = self._subs.get_last_msg(self.PEOPLE_TOPIC)
 
-            if self.with_j1:
-                fa = self._subs.get_last_msg(self.FACES_TOPIC)
-                if fa is not None:
-                    if fa.count > 0:
-                        faces = fa
+            # store latest faces -> only if we got some, we adapt j1
+            faces = self._subs.get_last_msg(self.FACES_TOPIC)
+            got_faces = faces is not None and faces.count > 0
 
             if ts is not None:
                 torso_state = ts
@@ -140,7 +130,8 @@ class AdjustTorso(EventState):
 
             dur.append(max(abs(cmd - pos) / self.MAX_VEL, self.MIN_TRAJ_DUR))
 
-            if self.with_j1 and not self.j1_done:
+            # whether to adapt j1 or not
+            if self.with_j1 and not self.j1_done and got_faces:
                 if faces is None:
                     print('faces none')
                     continue

@@ -7,21 +7,20 @@ import rospy
 from jacobian_control.msg import DoAdaptionAction, DoAdaptionGoal, DoAdaptionResult, DoAdaptionFeedback
 
 
-class HandoverAdaptionExec(EventState):
+class HandoverAdaptionReset(EventState):
 
-    ''' Calls jacobian-control node for adaption. '''
+    ''' Resets jacobian control node. '''
 
-    def __init__(self, command='trigger', topic='/do_adaption', reality_damp=0.5, fixed_orientation=False,
-                 terminate=True, dynamic_orientation=True):
+    def __init__(self, topic='/do_adaption'):
 
-        super(HandoverAdaptionExec, self).__init__(outcomes = ['stopped', 'succeeded', 'error'])
+        super(HandoverAdaptionReset, self).__init__(outcomes = ['stopped', 'succeeded', 'error'])
 
-        self._topic = topic     #'do_adaption'
-        self._command = command
-        self._reality_damp = reality_damp       # 0.5
-        self._fixed_orientation = fixed_orientation
-        self._terminate = terminate
-        self._dynamic_orientation = dynamic_orientation
+        self._topic = topic
+        self._command = 'reset'
+        self._reality_damp = 0.5
+        self._fixed_orientation = False
+        self._terminate = True
+        self._dynamic_orientation = True
 
         self._client = actionlib.SimpleActionClient(self._topic, DoAdaptionAction)
         Logger.loginfo('Waiting for adaption server ...')
@@ -46,13 +45,10 @@ class HandoverAdaptionExec(EventState):
         goal.fixed_orientation = self._fixed_orientation
         goal.terminate = self._terminate
         goal.dynamic_orientation = self._dynamic_orientation
-        Logger.loginfo('sending goal: %s' %str(goal))
+        Logger.loginfo('sending reset goal: %s' %str(goal))
         self._error = False # make sure to reset the error state since a previous state execution might have failed
 
         try:
             self._client.send_goal(goal)
         except Exception as e:
             self._error = True
-
-    def on_exit(self, userdata):
-        rospy.loginfo('Exit adaption.')
