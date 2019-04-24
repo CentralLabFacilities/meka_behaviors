@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="quick_test">
+
+	<executable package_path="meka_flexbe_behaviors.quick_test_sm" class="quick_testSM" />
+	<tagstring>#testing</tagstring>
+	<author>me</author>
+	<date>Wed Apr 24 2019</date>
+	<description>
+		this statemachine is meant for quickly debugging new states
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+
+</behavior>
