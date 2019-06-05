@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="adaptive_handover_gaze">
+
+	<executable package_path="meka_flexbe_behaviors.adaptive_handover_gaze_sm" class="adaptive_handover_gazeSM" />
+	<tagstring>#adaptive #myhandisbetterthanyours</tagstring>
+	<author>me</author>
+	<date>Mon Mar 04 2019</date>
+	<description>
+		handover with trajectory adaption and gazing at things
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+	<params>
+
+		<param type="enum" name="hand" default="right" label="hand" hint="Sets the hand">
+			<option value="right" />
+			<option value="left" />
+		</param>
+
+		<param type="boolean" name="carrying" default="False" label="carrying" hint="Sets the carrying" />
+
+		<param type="numeric" name="stop_dist" default="1.3" label="stop_dist" hint="Sets the stop_dist">
+			<min value="0.7" />
+			<max value="2" />
+		</param>
+
+	</params>
+
+
+</behavior>
