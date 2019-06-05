@@ -70,23 +70,23 @@ class AdjustTorso(EventState):
         torso_state, people, faces = None, None, None
         ra = rospy.Rate(self.rate)
 
-        Logger.loginfo('waiting for torso state and people')
+        Logger.loginfo('checking for torso state and people')
 
         got_it = False
         # wait until we have data
-        while not got_it:
-            torso_state = self._subs.get_last_msg(self.TORSO_STATE_TOPIC)
-            people = self._subs.get_last_msg(self.PEOPLE_TOPIC)
+        torso_state = self._subs.get_last_msg(self.TORSO_STATE_TOPIC)
+        people = self._subs.get_last_msg(self.PEOPLE_TOPIC)
 
-            if torso_state is None:
-                Logger.loginfo('no torso state')
-            elif people is None:
-                Logger.loginfo('no people')
-            elif len(people.people) < 1:
-                Logger.loginfo('no people')
-            else:
-                got_it = True
-            ra.sleep()
+        if torso_state is None:
+            Logger.loginfo('no torso state')
+        elif people is None:
+            Logger.loginfo('no people')
+        elif len(people.people) < 1:
+            Logger.loginfo('no people')
+        else:
+            got_it = True
+        if not got_it:
+            return
 
         Logger.loginfo('Got initial people and torso state.')
 

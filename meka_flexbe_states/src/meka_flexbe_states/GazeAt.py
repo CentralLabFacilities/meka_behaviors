@@ -14,7 +14,7 @@ class GazeAtTarget(EventState):
 
         super(GazeAtTarget, self).__init__(outcomes = ['done', 'target_not_found'])
 
-        self._pub = ProxyPublisher('/gaze_relay/target', GazeRelayTarget)
+        self._pub = ProxyPublisher({'/gaze_relay/target': GazeRelayTarget})
         self._wait = wait
         self._target = target
 
@@ -28,6 +28,8 @@ class GazeAtTarget(EventState):
 
     def execute(self, d):
 
+        Logger.loginfo('executing gaze at ' + str(self._target))
+
         if self._target not in self.target_map.keys():
             Logger.logerr('Target ' + str(self._target) + ' not found')
             return 'target_not_found'
@@ -38,5 +40,7 @@ class GazeAtTarget(EventState):
 
         if self._wait is not None:
             time.sleep(self._wait)
+
+        Logger.loginfo('gazing done')
 
         return 'done'
