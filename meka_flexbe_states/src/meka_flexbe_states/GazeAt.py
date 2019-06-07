@@ -8,13 +8,14 @@ import time
 
 class GazeAtTarget(EventState):
 
-    ''' Calls jacobian-control node for adaption. '''
+    ''' Calls gaze relay. '''
 
     def __init__(self, target='face', wait=None):
 
         super(GazeAtTarget, self).__init__(outcomes = ['done', 'target_not_found'])
 
-        self._pub = ProxyPublisher({'/gaze_relay/target': GazeRelayTarget})
+        self._gaze_topic = '/gaze_relay/target'
+        self._pub = ProxyPublisher({self._gaze_topic: GazeRelayTarget})
         self._wait = wait
         self._target = target
 
@@ -28,7 +29,7 @@ class GazeAtTarget(EventState):
 
     def execute(self, d):
 
-        Logger.loginfo('executing gaze at ' + str(self._target))
+        Logger.loginfo('gazing at ' + str(self._target))
 
         if self._target not in self.target_map.keys():
             Logger.logerr('Target ' + str(self._target) + ' not found')
@@ -38,9 +39,7 @@ class GazeAtTarget(EventState):
         tar.person_id = 0
         tar.gaze_target = self.target_map[self._target]
 
+        self._pub.publish(self._gaze_topic, tar)
+
         if self._wait is not None:
             time.sleep(self._wait)
-
-        Logger.loginfo('gazing done')
-
-        return 'done'
