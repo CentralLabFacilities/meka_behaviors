@@ -9,7 +9,7 @@ from posture_execution.posture_execution import PostureExecution
 
 class GroupToPosture(EventState):
 
-    def __init__(self, hand, group, posture, posture_path=''):
+    def __init__(self, hand='right', group='hand', posture='handover', posture_path=''):
         super(GroupToPosture, self).__init__(outcomes=['success', 'failure'])
 
         self._rospack = rospkg.RosPack()
@@ -31,4 +31,5 @@ class GroupToPosture(EventState):
             return 'success'
 
     def on_enter(self, d):
+        Logger.loginfo('executing posture ' + self._posture + ' for ' + self._hand_name)
         self._meka_posture.execute(self._hand_name, self._posture)

@@ -8,9 +8,8 @@
 ###########################################################
 
 from flexbe_core import Behavior, Autonomy, OperatableStateMachine, ConcurrencyContainer, PriorityContainer, Logger
-from meka_flexbe_states.WaitForDoldButton import WaitForDoldButton
-from meka_flexbe_states.HandoverAdaptionReset import HandoverAdaptionReset
-from meka_flexbe_states.HandoverAdaptionExec import HandoverAdaptionExec
+from meka_flexbe_states.GroupToPosture import GroupToPosture
+from flexbe_states.wait_state import WaitState
 # Additional imports can be added inside the following tags
 # [MANUAL_IMPORT]
 
@@ -55,23 +54,23 @@ class quick_testSM(Behavior):
 
 
 		with _state_machine:
-			# x:85 y:48
-			OperatableStateMachine.add('w8',
-										WaitForDoldButton(dold_button_topic='/dold_driver/state'),
-										transitions={'done': 'res', 'failure': 'failed'},
-										autonomy={'done': Autonomy.Off, 'failure': Autonomy.Off})
+			# x:103 y:40
+			OperatableStateMachine.add('asd',
+										GroupToPosture(hand='right', group='arm', posture='right_arm_hand_over_approach_high', posture_path=''),
+										transitions={'success': 'w78', 'failure': 'failed'},
+										autonomy={'success': Autonomy.Off, 'failure': Autonomy.Off})
 
-			# x:445 y:217
-			OperatableStateMachine.add('res',
-										HandoverAdaptionReset(topic='/do_adaption'),
-										transitions={'stopped': 'finished', 'succeeded': 'finished', 'error': 'finished'},
-										autonomy={'stopped': Autonomy.Off, 'succeeded': Autonomy.Off, 'error': Autonomy.Off})
+			# x:380 y:39
+			OperatableStateMachine.add('w78',
+										WaitState(wait_time=4),
+										transitions={'done': 'grou'},
+										autonomy={'done': Autonomy.Off})
 
-			# x:364 y:49
-			OperatableStateMachine.add('exe',
-										HandoverAdaptionExec(command='trigger', topic='/do_adaption', reality_damp=0.5, fixed_orientation=False, terminate=True, dynamic_orientation=True),
-										transitions={'stopped': 'finished', 'succeeded': 'finished', 'error': 'finished'},
-										autonomy={'stopped': Autonomy.Off, 'succeeded': Autonomy.Off, 'error': Autonomy.Off})
+			# x:317 y:163
+			OperatableStateMachine.add('grou',
+										GroupToPosture(hand='right', group='arm', posture='right_arm_hand_over_retreat', posture_path=''),
+										transitions={'success': 'finished', 'failure': 'failed'},
+										autonomy={'success': Autonomy.Off, 'failure': Autonomy.Off})
 
 
 		return _state_machine

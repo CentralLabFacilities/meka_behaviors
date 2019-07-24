@@ -7,14 +7,14 @@ import random
 import rospy
 
 
-class GazeAtTarget(EventState):
+class GazeAtTargetReturn(EventState):
 
     ''' Calls gaze relay. '''
 
     def __init__(self, target='face', duration_type='long', use_timeout=True):
         assert duration_type == 'long' or duration_type == 'short', 'unknown duration type: ' + str(duration_type)
 
-        super(GazeAtTarget, self).__init__(outcomes = ['target_not_found'])
+        super(GazeAtTargetReturn, self).__init__(outcomes = ['target_not_found', 'done'])
 
         self._gaze_topic = '/gaze_relay/target'
         self._pub = ProxyPublisher({self._gaze_topic: GazeRelayTarget})
@@ -76,3 +76,4 @@ class GazeAtTarget(EventState):
             tar.person_id = 0
             tar.gaze_target = self.target_map['neutral']
             self._pub.publish(self._gaze_topic, tar)
+            return 'done'
