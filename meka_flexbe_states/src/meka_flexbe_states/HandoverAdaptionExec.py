@@ -11,8 +11,8 @@ class HandoverAdaptionExec(EventState):
 
     ''' Calls jacobian-control node for adaption. '''
 
-    def __init__(self, command='trigger', topic='/do_adaption', reality_damp=0.5, fixed_orientation=False,
-                 terminate=True, dynamic_orientation=True):
+    def __init__(self, command='trigger', topic='/do_adaption', reality_damp=0.3, fixed_orientation=True,
+                 terminate=True, use_reference_trajectory=True):
 
         super(HandoverAdaptionExec, self).__init__(outcomes = ['stopped', 'succeeded', 'error'])
 
@@ -21,7 +21,8 @@ class HandoverAdaptionExec(EventState):
         self._reality_damp = reality_damp       # 0.5
         self._fixed_orientation = fixed_orientation
         self._terminate = terminate
-        self._dynamic_orientation = dynamic_orientation
+
+        self._use_reference_trajectory =use_reference_trajectory
 
         self._client = actionlib.SimpleActionClient(self._topic, DoAdaptionAction)
         Logger.loginfo('Waiting for adaption server ...')
@@ -37,6 +38,9 @@ class HandoverAdaptionExec(EventState):
         if self._client.get_state() is 3:       # succeeded
             rospy.logwarn(self._client.get_state())
             return 'succeeded'
+        if self._client.get_state() is 4:       # aborted
+            rospy.logwarn(self._client.get_state())
+            return 'error'
 
     def on_enter(self, userdata):
         # Create the goal.
@@ -45,7 +49,8 @@ class HandoverAdaptionExec(EventState):
         goal.reality_damp = self._reality_damp
         goal.fixed_orientation = self._fixed_orientation
         goal.terminate = self._terminate
-        goal.dynamic_orientation = self._dynamic_orientation
+
+        goal.use_reference_trajectory = self._use_reference_trajectory
         Logger.loginfo('sending goal: %s' %str(goal))
         self._error = False # make sure to reset the error state since a previous state execution might have failed
 

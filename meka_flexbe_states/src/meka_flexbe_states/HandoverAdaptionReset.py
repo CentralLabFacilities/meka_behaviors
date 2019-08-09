@@ -20,7 +20,7 @@ class HandoverAdaptionReset(EventState):
         self._reality_damp = 0.5
         self._fixed_orientation = False
         self._terminate = True
-        self._dynamic_orientation = True
+
 
         self._client = actionlib.SimpleActionClient(self._topic, DoAdaptionAction)
         Logger.loginfo('Waiting for adaption server ...')
@@ -44,7 +44,7 @@ class HandoverAdaptionReset(EventState):
         goal.reality_damp = self._reality_damp
         goal.fixed_orientation = self._fixed_orientation
         goal.terminate = self._terminate
-        goal.dynamic_orientation = self._dynamic_orientation
+
         Logger.loginfo('sending reset goal: %s' %str(goal))
         self._error = False # make sure to reset the error state since a previous state execution might have failed
 

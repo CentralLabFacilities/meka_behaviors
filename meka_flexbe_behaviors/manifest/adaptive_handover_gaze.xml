@@ -23,7 +23,7 @@
 
 		<param type="boolean" name="carrying" default="False" label="carrying" hint="Sets the carrying" />
 
-		<param type="numeric" name="stop_dist" default="0.7" label="stop_dist" hint="Sets the stop_dist">
+		<param type="numeric" name="stop_dist" default="1.0" label="stop_dist" hint="Sets the stop_dist">
 			<min value="0.0" />
 			<max value="2" />
 		</param>
