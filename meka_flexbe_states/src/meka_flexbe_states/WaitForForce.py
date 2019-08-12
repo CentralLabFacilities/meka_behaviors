@@ -25,7 +25,7 @@ class WaitForForceState(EventState):
 
     '''
 
-    def __init__(self, hand):
+    def __init__(self, hand, force_threshold=1.5):
         '''Constructor'''
         super(WaitForForceState, self).__init__(outcomes=['success', 'failure'])
         self._action_name = rospy.get_name()
@@ -36,6 +36,7 @@ class WaitForForceState(EventState):
         self.force_bias = {}
         self.previous_force = {}
         self._r = rospy.Rate(100)
+        self._threshold = force_threshold
 
         # store latest planning scene
         self.current_planning_scene = None
@@ -124,7 +125,7 @@ class WaitForForceState(EventState):
     def execute(self, d):
         '''Execute this state'''
 
-        if self.check_force(threshold=1.5, group_name=self._group, timeout=120.0):
+        if self.check_force(threshold=self._threshold, group_name=self._group, timeout=120.0):
             Logger.loginfo('got force!')
             return 'success'
 

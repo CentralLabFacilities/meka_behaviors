@@ -78,18 +78,21 @@ class AdjustTorso(EventState):
         people = self._subs.get_last_msg(self.PEOPLE_TOPIC)
 
         if torso_state is None:
-            Logger.loginfo('no torso state')
+            Logger.loginfo('no torso state, please start torso once')
+            return
         elif people is None:
             Logger.loginfo('no people')
         elif len(people.people) < 1:
             Logger.loginfo('no people')
         else:
             got_it = True
+            Logger.loginfo('Got initial people and torso state.')
         if not got_it:
-            return
+            Logger.loginfo('Dit not get initial people and torso state.')
+            #return
 
-        Logger.loginfo('Got initial people and torso state.')
 
+        cmd = None;
 
         # first, get new data if not None
         ts = self._subs.get_last_msg(self.TORSO_STATE_TOPIC)
@@ -106,28 +109,56 @@ class AdjustTorso(EventState):
             if len(pe.people) > 0:
                 people = pe
 
-        ps = PointStamped()
-        ps.header = people.header
-        ps.header.stamp = rospy.Time(0)
-        ps.point = people.people[0].position
+                ps = PointStamped()
+                ps.header = people.header
+                ps.header.stamp = rospy.Time(0)
+                ps.point = people.people[0].position
 
-        trans = self.t.transformPoint(self.TARGET_FRAME, ps)
-        person_pos = np.arctan2(trans.point.y, trans.point.x)
-        person_dist = np.linalg.norm([trans.point.x,trans.point.y])
+                trans = self.t.transformPoint(self.TARGET_FRAME, ps)
+                person_pos = np.arctan2(trans.point.y, trans.point.x)
+                person_dist = np.linalg.norm([trans.point.x,trans.point.y])
 
-        js_pos = torso_state.actual.positions
-        js_pos_des = torso_state.desired.positions
+                js_pos = torso_state.actual.positions
+                js_pos_des = torso_state.desired.positions
 
-        dur = []
+                dur = []
 
-        traj = JointTrajectory()
-        traj.joint_names = self.JOINT_NAMES
-        point = JointTrajectoryPoint()
+                traj = JointTrajectory()
+                traj.joint_names = self.JOINT_NAMES
+                point = JointTrajectoryPoint()
 
-        pos = js_pos[0]
-        cmd = np.clip(person_pos, self.LIMITS[self.JOINT_NAMES[0]][0], self.LIMITS[self.JOINT_NAMES[0]][1])
+                pos = js_pos[0]
+                cmd = np.clip(person_pos, self.LIMITS[self.JOINT_NAMES[0]][0], self.LIMITS[self.JOINT_NAMES[0]][1])
 
-        dur.append(max(abs(cmd - pos) / self.MAX_VEL, self.MIN_TRAJ_DUR))
+                dur.append(max(abs(cmd - pos) / self.MAX_VEL, self.MIN_TRAJ_DUR))
+                
+        if got_faces:
+            ps = PointStamped()
+            ps.header = faces.header
+            ps.header.stamp = rospy.Time(0)
+            ps.point = faces.faces[0].head_pose.position
+
+            trans = self.t.transformPoint(self.TARGET_FRAME, ps)
+            person_pos = np.arctan2(trans.point.y, trans.point.x)
+            person_dist = np.linalg.norm([trans.point.x,trans.point.y])
+
+            js_pos = torso_state.actual.positions
+            js_pos_des = torso_state.desired.positions
+
+            dur = []
+
+            traj = JointTrajectory()
+            traj.joint_names = self.JOINT_NAMES
+            point = JointTrajectoryPoint()
+
+            pos = js_pos[0]
+            cmd = np.clip(person_pos, self.LIMITS[self.JOINT_NAMES[0]][0], self.LIMITS[self.JOINT_NAMES[0]][1])
+
+            dur.append(max(abs(cmd - pos) / self.MAX_VEL, self.MIN_TRAJ_DUR))
+            
+        if cmd is None:
+            return;
+        
 
         # whether to adapt j1minimal state changes or not
         if self.with_j1 and not self.j1_done and got_faces:

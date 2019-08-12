@@ -190,7 +190,7 @@ class adaptive_handover_gazeSM(Behavior):
 		with _sm_adaptiongazeathuman_6:
 			# x:83 y:168
 			OperatableStateMachine.add('handoverAdaption',
-										HandoverAdaptionExec(command='trigger', topic='/do_adaption', reality_damp=0.5, fixed_orientation=True, terminate=True, use_reference_trajectory=True),
+										HandoverAdaptionExec(command='trigger', topic='/do_adaption', reality_damp=0.5, terminate_dist_override=0.0, fixed_orientation=True, terminate=True, use_reference_trajectory=True),
 										transitions={'stopped': 'finished', 'succeeded': 'finished', 'error': 'failed'},
 										autonomy={'stopped': Autonomy.Off, 'succeeded': Autonomy.Off, 'error': Autonomy.Off})
 
@@ -213,7 +213,7 @@ class adaptive_handover_gazeSM(Behavior):
 		with _sm_waitcontactgazeathumanhand_7:
 			# x:48 y:85
 			OperatableStateMachine.add('waitforContact',
-										WaitForForceState(hand='right'),
+										WaitForForceState(hand='right', force_threshold=2.5),
 										transitions={'success': 'finished', 'failure': 'failed'},
 										autonomy={'success': Autonomy.Off, 'failure': Autonomy.Off})
 
@@ -253,7 +253,7 @@ class adaptive_handover_gazeSM(Behavior):
 			# x:614 y:185
 			OperatableStateMachine.add('AdaptionGazeAtHuman',
 										_sm_adaptiongazeathuman_6,
-										transitions={'finished': 'WaitContactGazeatHumanHand', 'failed': 'InitTorso'},
+										transitions={'finished': 'waitToSettle', 'failed': 'InitTorso'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit})
 
 			# x:201 y:370
@@ -274,9 +274,9 @@ class adaptive_handover_gazeSM(Behavior):
 										transitions={'stopped': 'failed', 'succeeded': 'InitTorso', 'error': 'failed'},
 										autonomy={'stopped': Autonomy.Off, 'succeeded': Autonomy.Off, 'error': Autonomy.Off})
 
-			# x:615 y:454
+			# x:639 y:526
 			OperatableStateMachine.add('PushInHand',
-										HandoverAdaptionExec(command='trigger', topic='/do_adaption', reality_damp=0.3, fixed_orientation=True, terminate=True, use_reference_trajectory=False),
+										HandoverAdaptionExec(command='trigger', topic='/do_adaption', reality_damp=0.3, terminate_dist_override=0.05, fixed_orientation=True, terminate=True, use_reference_trajectory=False),
 										transitions={'stopped': 'WaitContactGazeatHumanHand', 'succeeded': 'ToggleHandGaze', 'error': 'WaitContactGazeatHumanHand'},
 										autonomy={'stopped': Autonomy.Off, 'succeeded': Autonomy.Off, 'error': Autonomy.Off})
 
@@ -285,6 +285,12 @@ class adaptive_handover_gazeSM(Behavior):
 										_sm_inittorso_3,
 										transitions={'finished': 'InitHandTracking', 'failed': 'InitHandTracking'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit})
+
+			# x:762 y:247
+			OperatableStateMachine.add('waitToSettle',
+										WaitState(wait_time=0.5),
+										transitions={'done': 'WaitContactGazeatHumanHand'},
+										autonomy={'done': Autonomy.Off})
 
 
 		return _state_machine
