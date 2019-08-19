@@ -9,9 +9,11 @@ from handtracking.srv import Handtracking, HandtrackingRequest
 
 class InitHandTracking(EventState):
 
-    def __init__(self):
+    def __init__(self, carrying):
 
         super(InitHandTracking, self).__init__(outcomes=['done'])
+        
+        self._carrying = carrying
 
         self.TRACKING_TOPIC = '/handtracking_server/init'
         self._srv = ProxyServiceCaller({
@@ -28,7 +30,7 @@ class InitHandTracking(EventState):
     def execute(self, d):
         Logger.loginfo('starting handtracking ...')
         req = HandtrackingRequest()
-        req.data = True
+        req.carrying = self._carrying
         self._srv.call(self.TRACKING_TOPIC, req)
         Logger.loginfo('done')
         return 'done'

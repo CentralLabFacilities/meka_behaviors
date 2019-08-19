@@ -8,16 +8,19 @@
 ###########################################################
 
 from flexbe_core import Behavior, Autonomy, OperatableStateMachine, ConcurrencyContainer, PriorityContainer, Logger
-from meka_flexbe_states.WaitForDoldButton import WaitForDoldButton
-from meka_flexbe_states.InitHandTracking import InitHandTracking
+from meka_flexbe_states.GroupToPosture import GroupToPosture
 from meka_flexbe_states.WaitForForce import WaitForForceState
 from meka_flexbe_states.GazeAtReturn import GazeAtTargetReturn
 from flexbe_states.wait_state import WaitState
 from meka_flexbe_states.HandoverAdaptionExec import HandoverAdaptionExec
-from meka_flexbe_states.ToggleHandState import ToggleHandState
-from meka_flexbe_states.GazeAt import GazeAtTarget
+from meka_flexbe_states.CarryingState import CarryingState
 from meka_flexbe_states.HandoverAdaptionReset import HandoverAdaptionReset
+from meka_flexbe_states.GazeAt import GazeAtTarget
 from meka_flexbe_states.AdjustTorso import AdjustTorso
+from meka_flexbe_states.StopHandTracking import StopHandTracking
+from meka_flexbe_states.InitHandTracking import InitHandTracking
+from meka_flexbe_states.WaitForDoldButton import WaitForDoldButton
+from meka_flexbe_states.ToggleHandState import ToggleHandState
 # Additional imports can be added inside the following tags
 # [MANUAL_IMPORT]
 
@@ -55,7 +58,7 @@ class adaptive_handover_gazeSM(Behavior):
 
 
 	def create(self):
-		# x:30 y:365, x:479 y:473
+		# x:30 y:365, x:470 y:184
 		_state_machine = OperatableStateMachine(outcomes=['finished', 'failed'])
 
 		# Additional creation code can be added inside the following tags
@@ -81,9 +84,38 @@ class adaptive_handover_gazeSM(Behavior):
 
 
 		# x:30 y:365, x:130 y:365
-		_sm_alternatinggazeheadrobhand_1 = OperatableStateMachine(outcomes=['finished', 'failed'])
+		_sm_openlittleafterwait_1 = OperatableStateMachine(outcomes=['finished', 'failed'])
 
-		with _sm_alternatinggazeheadrobhand_1:
+		with _sm_openlittleafterwait_1:
+			# x:164 y:23
+			OperatableStateMachine.add('isCarrying',
+										CarryingState(carrying=self.carrying),
+										transitions={'carrying': 'LittleDelay', 'notCarrying': 'KeepParaRunning'},
+										autonomy={'carrying': Autonomy.Off, 'notCarrying': Autonomy.Off})
+
+			# x:250 y:199
+			OperatableStateMachine.add('CloseLittle',
+										GroupToPosture(hand='right', group='hand', posture='little_closed', posture_path=''),
+										transitions={'success': 'KeepParaRunning', 'failure': 'KeepParaRunning'},
+										autonomy={'success': Autonomy.Off, 'failure': Autonomy.Off})
+
+			# x:374 y:62
+			OperatableStateMachine.add('LittleDelay',
+										WaitState(wait_time=0.5),
+										transitions={'done': 'CloseLittle'},
+										autonomy={'done': Autonomy.Off})
+
+			# x:79 y:153
+			OperatableStateMachine.add('KeepParaRunning',
+										WaitState(wait_time=999),
+										transitions={'done': 'finished'},
+										autonomy={'done': Autonomy.Off})
+
+
+		# x:30 y:365, x:130 y:365
+		_sm_alternatinggazeheadrobhand_2 = OperatableStateMachine(outcomes=['finished', 'failed'])
+
+		with _sm_alternatinggazeheadrobhand_2:
 			# x:79 y:102
 			OperatableStateMachine.add('HumanHead',
 										GazeAtTargetReturn(target='face', duration_type='long', use_timeout=False),
@@ -98,9 +130,9 @@ class adaptive_handover_gazeSM(Behavior):
 
 
 		# x:30 y:365, x:130 y:365
-		_sm_alternatinggazehumrobhand_2 = OperatableStateMachine(outcomes=['finished', 'failed'])
+		_sm_alternatinggazehumrobhand_3 = OperatableStateMachine(outcomes=['finished', 'failed'])
 
-		with _sm_alternatinggazehumrobhand_2:
+		with _sm_alternatinggazehumrobhand_3:
 			# x:157 y:87
 			OperatableStateMachine.add('humanHand',
 										GazeAtTargetReturn(target='right_hand', duration_type='short', use_timeout=False),
@@ -114,13 +146,34 @@ class adaptive_handover_gazeSM(Behavior):
 										autonomy={'target_not_found': Autonomy.Off, 'done': Autonomy.Off})
 
 
+		# x:30 y:365, x:130 y:365, x:230 y:365, x:330 y:365, x:430 y:365
+		_sm_togglehandgaze_4 = ConcurrencyContainer(outcomes=['finished', 'failed'], conditions=[
+										('finished', [('ToggleHand', 'success')]),
+										('failed', [('ToggleHand', 'failure')]),
+										('failed', [('robotHand', 'target_not_found')])
+										])
+
+		with _sm_togglehandgaze_4:
+			# x:113 y:90
+			OperatableStateMachine.add('ToggleHand',
+										ToggleHandState(hand=self.hand, carrying=self.carrying, posture_path=''),
+										transitions={'success': 'finished', 'failure': 'failed'},
+										autonomy={'success': Autonomy.Off, 'failure': Autonomy.Off})
+
+			# x:326 y:84
+			OperatableStateMachine.add('robotHand',
+										GazeAtTarget(target='robot_right_hand', duration_type='short', use_timeout=False),
+										transitions={'target_not_found': 'failed'},
+										autonomy={'target_not_found': Autonomy.Off})
+
+
 		# x:30 y:365, x:130 y:365, x:230 y:365, x:330 y:365
-		_sm_inittorso_3 = ConcurrencyContainer(outcomes=['finished', 'failed'], conditions=[
+		_sm_inittorso_5 = ConcurrencyContainer(outcomes=['finished', 'failed'], conditions=[
 										('finished', [('adjustTorso', 'done')]),
 										('failed', [('gaze@face', 'target_not_found')])
 										])
 
-		with _sm_inittorso_3:
+		with _sm_inittorso_5:
 			# x:59 y:159
 			OperatableStateMachine.add('adjustTorso',
 										AdjustTorso(person_stop_dist=self.stop_dist, with_j1=True, rate=10),
@@ -135,7 +188,7 @@ class adaptive_handover_gazeSM(Behavior):
 
 
 		# x:30 y:365, x:130 y:365, x:230 y:365, x:330 y:365, x:430 y:365, x:530 y:365, x:630 y:365
-		_sm_retreatgaze_4 = ConcurrencyContainer(outcomes=['finished', 'failed'], conditions=[
+		_sm_retreatgaze_6 = ConcurrencyContainer(outcomes=['finished', 'failed'], conditions=[
 										('finished', [('GazeRobotNeutral', 'finished')]),
 										('failed', [('GazeRobotNeutral', 'failed')]),
 										('finished', [('gohome', 'succeeded')]),
@@ -143,7 +196,7 @@ class adaptive_handover_gazeSM(Behavior):
 										('failed', [('gohome', 'error')])
 										])
 
-		with _sm_retreatgaze_4:
+		with _sm_retreatgaze_6:
 			# x:98 y:111
 			OperatableStateMachine.add('gohome',
 										HandoverAdaptionReset(topic='/do_adaption'),
@@ -157,52 +210,39 @@ class adaptive_handover_gazeSM(Behavior):
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit})
 
 
-		# x:30 y:365, x:130 y:365, x:230 y:365, x:330 y:365, x:430 y:365
-		_sm_togglehandgaze_5 = ConcurrencyContainer(outcomes=['finished', 'failed'], conditions=[
-										('finished', [('ToggleHand', 'success')]),
-										('failed', [('ToggleHand', 'failure')]),
-										('failed', [('robotHand', 'target_not_found')])
-										])
-
-		with _sm_togglehandgaze_5:
-			# x:113 y:90
-			OperatableStateMachine.add('ToggleHand',
-										ToggleHandState(hand=self.hand, carrying=self.carrying, posture_path=''),
-										transitions={'success': 'finished', 'failure': 'failed'},
-										autonomy={'success': Autonomy.Off, 'failure': Autonomy.Off})
-
-			# x:326 y:84
-			OperatableStateMachine.add('robotHand',
-										GazeAtTarget(target='robot_right_hand', duration_type='short', use_timeout=False),
-										transitions={'target_not_found': 'failed'},
-										autonomy={'target_not_found': Autonomy.Off})
-
-
-		# x:30 y:365, x:130 y:365, x:230 y:365, x:330 y:365, x:430 y:365, x:530 y:365, x:630 y:365
-		_sm_adaptiongazeathuman_6 = ConcurrencyContainer(outcomes=['finished', 'failed'], conditions=[
+		# x:30 y:365, x:130 y:365, x:230 y:365, x:330 y:365, x:430 y:365, x:530 y:365, x:630 y:365, x:730 y:365, x:830 y:365
+		_sm_adaptiongazeathuman_7 = ConcurrencyContainer(outcomes=['finished', 'failed'], conditions=[
 										('finished', [('handoverAdaption', 'stopped')]),
 										('finished', [('handoverAdaption', 'succeeded')]),
 										('failed', [('handoverAdaption', 'error')]),
 										('finished', [('AlternatingGazeHeadRobHand', 'finished')]),
-										('failed', [('AlternatingGazeHeadRobHand', 'failed')])
+										('failed', [('AlternatingGazeHeadRobHand', 'failed')]),
+										('finished', [('OpenLittleAfterWait', 'finished')]),
+										('failed', [('OpenLittleAfterWait', 'failed')])
 										])
 
-		with _sm_adaptiongazeathuman_6:
+		with _sm_adaptiongazeathuman_7:
 			# x:83 y:168
 			OperatableStateMachine.add('handoverAdaption',
-										HandoverAdaptionExec(command='trigger', topic='/do_adaption', reality_damp=0.5, terminate_dist_override=0.0, fixed_orientation=True, terminate=True, use_reference_trajectory=True),
+										HandoverAdaptionExec(command='trigger', topic='/do_adaption', reality_damp=0.6, terminate_dist_override=0.0, fixed_orientation=True, terminate=True, use_reference_trajectory=True),
 										transitions={'stopped': 'finished', 'succeeded': 'finished', 'error': 'failed'},
 										autonomy={'stopped': Autonomy.Off, 'succeeded': Autonomy.Off, 'error': Autonomy.Off})
 
 			# x:439 y:41
 			OperatableStateMachine.add('AlternatingGazeHeadRobHand',
-										_sm_alternatinggazeheadrobhand_1,
+										_sm_alternatinggazeheadrobhand_2,
+										transitions={'finished': 'finished', 'failed': 'failed'},
+										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit})
+
+			# x:796 y:117
+			OperatableStateMachine.add('OpenLittleAfterWait',
+										_sm_openlittleafterwait_1,
 										transitions={'finished': 'finished', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit})
 
 
 		# x:30 y:365, x:130 y:365, x:230 y:365, x:330 y:365, x:430 y:365, x:530 y:365, x:630 y:365
-		_sm_waitcontactgazeathumanhand_7 = ConcurrencyContainer(outcomes=['finished', 'failed'], conditions=[
+		_sm_waitcontactgazeathumanhand_8 = ConcurrencyContainer(outcomes=['finished', 'failed'], conditions=[
 										('finished', [('AlternatingGazeHumRobHand', 'finished')]),
 										('failed', [('AlternatingGazeHumRobHand', 'failed')]),
 										('finished', [('waitforContact', 'success')]),
@@ -210,7 +250,7 @@ class adaptive_handover_gazeSM(Behavior):
 										('failed', [('ForceTimeout', 'done')])
 										])
 
-		with _sm_waitcontactgazeathumanhand_7:
+		with _sm_waitcontactgazeathumanhand_8:
 			# x:48 y:85
 			OperatableStateMachine.add('waitforContact',
 										WaitForForceState(hand='right', force_threshold=2.5),
@@ -219,7 +259,7 @@ class adaptive_handover_gazeSM(Behavior):
 
 			# x:273 y:40
 			OperatableStateMachine.add('AlternatingGazeHumRobHand',
-										_sm_alternatinggazehumrobhand_2,
+										_sm_alternatinggazehumrobhand_3,
 										transitions={'finished': 'finished', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit})
 
@@ -238,33 +278,21 @@ class adaptive_handover_gazeSM(Behavior):
 										transitions={'done': 'resetAdaption', 'failure': 'finished'},
 										autonomy={'done': Autonomy.Off, 'failure': Autonomy.Off})
 
-			# x:671 y:33
-			OperatableStateMachine.add('InitHandTracking',
-										InitHandTracking(),
-										transitions={'done': 'AdaptionGazeAtHuman'},
-										autonomy={'done': Autonomy.Off})
-
 			# x:596 y:321
 			OperatableStateMachine.add('WaitContactGazeatHumanHand',
-										_sm_waitcontactgazeathumanhand_7,
+										_sm_waitcontactgazeathumanhand_8,
 										transitions={'finished': 'ToggleHandGaze', 'failed': 'PushInHand'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit})
 
 			# x:614 y:185
 			OperatableStateMachine.add('AdaptionGazeAtHuman',
-										_sm_adaptiongazeathuman_6,
-										transitions={'finished': 'waitToSettle', 'failed': 'InitTorso'},
-										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit})
-
-			# x:201 y:370
-			OperatableStateMachine.add('ToggleHandGaze',
-										_sm_togglehandgaze_5,
-										transitions={'finished': 'RetreatGaze', 'failed': 'failed'},
+										_sm_adaptiongazeathuman_7,
+										transitions={'finished': 'WaitContactGazeatHumanHand', 'failed': 'InitTorso'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit})
 
 			# x:179 y:169
 			OperatableStateMachine.add('RetreatGaze',
-										_sm_retreatgaze_4,
+										_sm_retreatgaze_6,
 										transitions={'finished': 'start_button', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit})
 
@@ -274,7 +302,7 @@ class adaptive_handover_gazeSM(Behavior):
 										transitions={'stopped': 'failed', 'succeeded': 'InitTorso', 'error': 'failed'},
 										autonomy={'stopped': Autonomy.Off, 'succeeded': Autonomy.Off, 'error': Autonomy.Off})
 
-			# x:639 y:526
+			# x:650 y:483
 			OperatableStateMachine.add('PushInHand',
 										HandoverAdaptionExec(command='trigger', topic='/do_adaption', reality_damp=0.3, terminate_dist_override=0.05, fixed_orientation=True, terminate=True, use_reference_trajectory=False),
 										transitions={'stopped': 'WaitContactGazeatHumanHand', 'succeeded': 'ToggleHandGaze', 'error': 'WaitContactGazeatHumanHand'},
@@ -282,15 +310,33 @@ class adaptive_handover_gazeSM(Behavior):
 
 			# x:458 y:14
 			OperatableStateMachine.add('InitTorso',
-										_sm_inittorso_3,
-										transitions={'finished': 'InitHandTracking', 'failed': 'InitHandTracking'},
+										_sm_inittorso_5,
+										transitions={'finished': 'InitHandTracking', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit})
 
-			# x:762 y:247
-			OperatableStateMachine.add('waitToSettle',
-										WaitState(wait_time=0.5),
-										transitions={'done': 'WaitContactGazeatHumanHand'},
+			# x:166 y:273
+			OperatableStateMachine.add('StopHandTracking',
+										StopHandTracking(),
+										transitions={'done': 'RetreatGaze'},
 										autonomy={'done': Autonomy.Off})
+
+			# x:671 y:33
+			OperatableStateMachine.add('InitHandTracking',
+										InitHandTracking(carrying=self.carrying),
+										transitions={'done': 'AdaptionGazeAtHuman'},
+										autonomy={'done': Autonomy.Off})
+
+			# x:325 y:401
+			OperatableStateMachine.add('ToggleHandGaze',
+										_sm_togglehandgaze_4,
+										transitions={'finished': 'StopHandTracking', 'failed': 'ReopenHandLittle'},
+										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit})
+
+			# x:441 y:543
+			OperatableStateMachine.add('ReopenHandLittle',
+										GroupToPosture(hand='right', group='hand', posture='little_closed', posture_path=''),
+										transitions={'success': 'PushInHand', 'failure': 'failed'},
+										autonomy={'success': Autonomy.Off, 'failure': Autonomy.Off})
 
 
 		return _state_machine

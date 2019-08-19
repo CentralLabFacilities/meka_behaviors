@@ -28,7 +28,7 @@ class StopHandTracking(EventState):
     def execute(self, d):
         Logger.loginfo('stopping handtracking ...')
         req = HandtrackingRequest()
-        req.data = True
+        #req.carrying = True
         self._srv.call(self.TRACKING_TOPIC, req)
         Logger.loginfo('done')
         return 'done'
