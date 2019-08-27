@@ -8,8 +8,8 @@
 ###########################################################
 
 from flexbe_core import Behavior, Autonomy, OperatableStateMachine, ConcurrencyContainer, PriorityContainer, Logger
-from meka_flexbe_states.GroupToPosture import GroupToPosture
-from flexbe_states.wait_state import WaitState
+from flexbe_states.check_condition_state import CheckConditionState
+from flexbe_states.log_state import LogState
 # Additional imports can be added inside the following tags
 # [MANUAL_IMPORT]
 
@@ -31,6 +31,7 @@ class quick_testSM(Behavior):
 		self.name = 'quick_test'
 
 		# parameters of this behavior
+		self.add_parameter('global_bool', False)
 
 		# references to used behaviors
 
@@ -46,6 +47,7 @@ class quick_testSM(Behavior):
 	def create(self):
 		# x:30 y:365, x:130 y:365
 		_state_machine = OperatableStateMachine(outcomes=['finished', 'failed'])
+		_state_machine.userdata.carry = self.global_bool
 
 		# Additional creation code can be added inside the following tags
 		# [MANUAL_CREATE]
@@ -54,23 +56,24 @@ class quick_testSM(Behavior):
 
 
 		with _state_machine:
-			# x:103 y:40
-			OperatableStateMachine.add('asd',
-										GroupToPosture(hand='right', group='arm', posture='right_arm_hand_over_approach_high', posture_path=''),
-										transitions={'success': 'w78', 'failure': 'failed'},
-										autonomy={'success': Autonomy.Off, 'failure': Autonomy.Off})
+			# x:168 y:38
+			OperatableStateMachine.add('check',
+										CheckConditionState(predicate=lambda x: x == True),
+										transitions={'true': 'printtrue', 'false': 'printfalse'},
+										autonomy={'true': Autonomy.Off, 'false': Autonomy.Off},
+										remapping={'input_value': 'carry'})
 
-			# x:380 y:39
-			OperatableStateMachine.add('w78',
-										WaitState(wait_time=4),
-										transitions={'done': 'grou'},
+			# x:30 y:213
+			OperatableStateMachine.add('printtrue',
+										LogState(text='bool was true', severity=Logger.REPORT_WARN),
+										transitions={'done': 'finished'},
 										autonomy={'done': Autonomy.Off})
 
-			# x:317 y:163
-			OperatableStateMachine.add('grou',
-										GroupToPosture(hand='right', group='arm', posture='right_arm_hand_over_retreat', posture_path=''),
-										transitions={'success': 'finished', 'failure': 'failed'},
-										autonomy={'success': Autonomy.Off, 'failure': Autonomy.Off})
+			# x:159 y:193
+			OperatableStateMachine.add('printfalse',
+										LogState(text='bool was false', severity=Logger.REPORT_WARN),
+										transitions={'done': 'failed'},
+										autonomy={'done': Autonomy.Off})
 
 
 		return _state_machine

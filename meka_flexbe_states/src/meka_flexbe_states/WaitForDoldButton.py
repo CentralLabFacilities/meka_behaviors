@@ -18,7 +18,7 @@ class WaitForDoldButton(EventState):
     '''
 
     def __init__(self, dold_button_topic='/dold_driver/state'):
-        super(WaitForDoldButton, self).__init__(outcomes=['done','failure'])
+        super(WaitForDoldButton, self).__init__(outcomes=['done'])
 
         self._dold_button_topic = dold_button_topic
         self._sub = ProxySubscriberCached({self._dold_button_topic: DoldStates})

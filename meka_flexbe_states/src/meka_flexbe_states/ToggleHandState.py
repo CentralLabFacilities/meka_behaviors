@@ -12,7 +12,7 @@ class ToggleHandState(EventState):
 
     def __init__(self, hand, carrying, posture_path=''):
 
-        super(ToggleHandState, self).__init__(outcomes=['success', 'failure'])
+        super(ToggleHandState, self).__init__(outcomes=['success', 'failure'], output_keys=['carrying'])
 
         self._rospack = rospkg.RosPack()
         self._meka_posture = PostureExecution('posture_exec')
@@ -68,8 +68,11 @@ class ToggleHandState(EventState):
         if(self._carrying):
             self._stiffness_control.change_stiffness([j0, j1, j2, j3, j4], [1, 1, 1, 1, 1])
         else:
-            self._stiffness_control.change_stiffness([j0, j1, j2, j3, j4], [0.75, 0.5, 0.4, 0.4, 0.6])
+            self._stiffness_control.change_stiffness([j0, j1, j2, j3, j4], [0.75, 0.6, 0.5, 0.5, 0.7])
             Logger.loginfo("making hand soft for grasping");
     
         self.toggle_hand()
+
+    def on_exit(self, d):
+        d.carrying = self._carrying
 

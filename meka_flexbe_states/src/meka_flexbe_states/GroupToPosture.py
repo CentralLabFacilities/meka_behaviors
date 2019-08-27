@@ -9,7 +9,7 @@ from posture_execution.posture_execution import PostureExecution
 
 class GroupToPosture(EventState):
 
-    def __init__(self, hand='right', group='hand', posture='handover', posture_path=''):
+    def __init__(self, hand='right', group='hand', posture='handover', posture_path='', non_blocking=True):
         super(GroupToPosture, self).__init__(outcomes=['success', 'failure'])
 
         self._rospack = rospkg.RosPack()
@@ -23,11 +23,15 @@ class GroupToPosture(EventState):
         if posture_path == '':
             posture_path = self._rospack.get_path('posture_execution') + '/config/postures_nonverbal_hand_over.yml'
 
+        self._non_blocking = non_blocking
+
         Logger.loginfo('Loading postures from: %s' % posture_path)
         self._meka_posture.load_postures(posture_path)
 
     def execute(self, d):
         if self._meka_posture.all_done:
+            return 'success'
+        elif self._non_blocking:
             return 'success'
 
     def on_enter(self, d):

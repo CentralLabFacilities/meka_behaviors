@@ -43,6 +43,7 @@ class GazeAtTargetReturn(EventState):
             'robot_right_hand': GazeRelayTarget.ROBOT_RIGHT_HAND,
             'robot_left_hand': GazeRelayTarget.ROBOT_LEFT_HAND,
             'torso':        GazeRelayTarget.TORSO,
+            'iotp': GazeRelayTarget.IOTP,
         }
 
     def on_enter(self, _):
@@ -55,7 +56,7 @@ class GazeAtTargetReturn(EventState):
         self._duration = max(self._duration, self._min_length)
         self._duration = min(self._duration, self._max_length)
 
-        Logger.loginfo('Gazing Duration: %r' % self._duration)
+        Logger.loginfo('Gazing Target: ' + str(self._target) + 'Duration: ' + str(self._duration))
 
     def execute(self, _):
 
@@ -65,15 +66,25 @@ class GazeAtTargetReturn(EventState):
 
         elapsed_time = rospy.get_rostime() - self._start_time
         if (elapsed_time.to_sec() < self._duration) or not self._use_timeout:
-            Logger.loginfo('gazing at ' + str(self._target))
+#            Logger.loghint('gazing at ' + str(self._target))
             tar = GazeRelayTarget()
             tar.person_id = 0
             tar.gaze_target = self.target_map[self._target]
             self._pub.publish(self._gaze_topic, tar)
         else:
-            Logger.loginfo('gazing at ' + str(self._target) + ' reached timeout! publishing neutral target.')
+            # Logger.loginfo('gazing at ' + str(self._target) + ' reached timeout! publishing neutral target.')
+            # tar = GazeRelayTarget()
+            # tar.person_id = 0
+            # tar.gaze_target = self.target_map['neutral']
+            # self._pub.publish(self._gaze_topic, tar)
+            return 'done'
+
+    def on_exit(self, userdata):
+        Logger.loghint('gazing at ' + str(self._target) + 'blocking!')
+        while (rospy.get_rostime()-self._start_time).to_sec() < self._min_length:
             tar = GazeRelayTarget()
             tar.person_id = 0
-            tar.gaze_target = self.target_map['neutral']
+            tar.gaze_target = self.target_map[self._target]
             self._pub.publish(self._gaze_topic, tar)
-            return 'done'
+
+

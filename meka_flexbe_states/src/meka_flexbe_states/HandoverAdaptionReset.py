@@ -13,10 +13,10 @@ class HandoverAdaptionReset(EventState):
 
     def __init__(self, topic='/do_adaption'):
 
-        super(HandoverAdaptionReset, self).__init__(outcomes = ['stopped', 'succeeded', 'error'])
+        super(HandoverAdaptionReset, self).__init__(outcomes = ['succeeded', 'error'])
 
         self._topic = topic
-        self._command = 'reset'
+        self._command = 0
         self._reality_damp = 0.5
         self._fixed_orientation = False
         self._terminate = True

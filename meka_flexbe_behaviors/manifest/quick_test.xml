@@ -14,5 +14,11 @@
 	<!-- Contained Behaviors -->
 
 	<!-- Available Parameters -->
+	<params>
+
+		<param type="boolean" name="global_bool" default="False" label="global_bool" hint="Sets the global_bool" />
+
+	</params>
+
 
 </behavior>

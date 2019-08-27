@@ -11,10 +11,10 @@ class HandoverAdaptionExec(EventState):
 
     ''' Calls jacobian-control node for adaption. '''
 
-    def __init__(self, command='trigger', topic='/do_adaption', reality_damp=0.3, terminate_dist_override=0.0, fixed_orientation=True,
+    def __init__(self, command=0, topic='/do_adaption', reality_damp=0.3, terminate_dist_override=0.0, fixed_orientation=True,
                  terminate=True, use_reference_trajectory=True):
 
-        super(HandoverAdaptionExec, self).__init__(outcomes = ['stopped', 'succeeded', 'error'])
+        super(HandoverAdaptionExec, self).__init__(outcomes = ['succeeded', 'error'])
 
         self._topic = topic     #'do_adaption'
         self._command = command
@@ -46,7 +46,7 @@ class HandoverAdaptionExec(EventState):
     def on_enter(self, userdata):
         # Create the goal.
         goal = DoAdaptionGoal()
-        goal.command = self._command
+        goal.command = DoAdaptionGoal.COMMAND_ADAPT
         goal.reality_damp = self._reality_damp
         goal.fixed_orientation = self._fixed_orientation
         goal.terminate = self._terminate

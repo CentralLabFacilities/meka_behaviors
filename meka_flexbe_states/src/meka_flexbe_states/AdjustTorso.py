@@ -70,7 +70,7 @@ class AdjustTorso(EventState):
         torso_state, people, faces = None, None, None
         ra = rospy.Rate(self.rate)
 
-        Logger.loginfo('checking for torso state and people')
+#        Logger.loginfo('checking for torso state and people')
 
         got_it = False
         # wait until we have data
