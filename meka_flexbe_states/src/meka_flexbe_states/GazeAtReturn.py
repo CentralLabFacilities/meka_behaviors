@@ -80,11 +80,11 @@ class GazeAtTargetReturn(EventState):
             return 'done'
 
     def on_exit(self, userdata):
-        Logger.loghint('gazing at ' + str(self._target) + 'blocking!')
-        while (rospy.get_rostime()-self._start_time).to_sec() < self._min_length:
-            tar = GazeRelayTarget()
-            tar.person_id = 0
-            tar.gaze_target = self.target_map[self._target]
-            self._pub.publish(self._gaze_topic, tar)
+        Logger.loghint('gazing at ' + str(self._target) + ' lost: ' +str((rospy.get_rostime() - self._start_time).to_sec()))
+#        while (rospy.get_rostime()-self._start_time).to_sec() < self._min_length:
+#            tar = GazeRelayTarget()
+#            tar.person_id = 0
+#            tar.gaze_target = self.target_map[self._target]
+#            self._pub.publish(self._gaze_topic, tar)
 
 
