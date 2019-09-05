@@ -9,7 +9,9 @@
 
 from flexbe_core import Behavior, Autonomy, OperatableStateMachine, ConcurrencyContainer, PriorityContainer, Logger
 from flexbe_states.check_condition_state import CheckConditionState
-from flexbe_states.log_state import LogState
+from meka_flexbe_states.RemoteRecord import RemoteRecord
+from meka_flexbe_states.RemoteRecordStop import RemoteRecordStop
+from flexbe_states.wait_state import WaitState
 # Additional imports can be added inside the following tags
 # [MANUAL_IMPORT]
 
@@ -59,20 +61,27 @@ class quick_testSM(Behavior):
 			# x:168 y:38
 			OperatableStateMachine.add('check',
 										CheckConditionState(predicate=lambda x: x == True),
-										transitions={'true': 'printtrue', 'false': 'printfalse'},
+										transitions={'true': 'st', 'false': 'st'},
 										autonomy={'true': Autonomy.Off, 'false': Autonomy.Off},
 										remapping={'input_value': 'carry'})
 
-			# x:30 y:213
-			OperatableStateMachine.add('printtrue',
-										LogState(text='bool was true', severity=Logger.REPORT_WARN),
+			# x:49 y:180
+			OperatableStateMachine.add('st',
+										RemoteRecord(topic='/meka/rosbagremote/record/named', pid=1),
+										transitions={'done': 'w8'},
+										autonomy={'done': Autonomy.Off},
+										remapping={'carrying': 'carry'})
+
+			# x:338 y:215
+			OperatableStateMachine.add('sto',
+										RemoteRecordStop(topic='/meka/rosbagremote/record/named'),
 										transitions={'done': 'finished'},
 										autonomy={'done': Autonomy.Off})
 
-			# x:159 y:193
-			OperatableStateMachine.add('printfalse',
-										LogState(text='bool was false', severity=Logger.REPORT_WARN),
-										transitions={'done': 'failed'},
+			# x:304 y:142
+			OperatableStateMachine.add('w8',
+										WaitState(wait_time=2),
+										transitions={'done': 'sto'},
 										autonomy={'done': Autonomy.Off})
 
 

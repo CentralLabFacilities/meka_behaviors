@@ -30,6 +30,11 @@
 			<max value="2" />
 		</param>
 
+		<param type="numeric" name="participant_id" default="1" label="participant_id" hint="Sets the participant_id">
+			<min value="1" />
+			<max value="100" />
+		</param>
+
 	</params>
 
 

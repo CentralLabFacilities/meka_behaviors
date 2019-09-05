@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="DeterministicGazeHandHandFace">
+
+	<executable package_path="meka_flexbe_behaviors.deterministicgazehandhandface_sm" class="DeterministicGazeHandHandFaceSM" />
+	<tagstring>gaze</tagstring>
+	<author>me</author>
+	<date>Fri Aug 23 2019</date>
+	<description>
+		gazing
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+	<params>
+
+		<param type="boolean" name="carrying" default="False" label="carrying" hint="Sets the carrying" />
+
+	</params>
+
+
+</behavior>

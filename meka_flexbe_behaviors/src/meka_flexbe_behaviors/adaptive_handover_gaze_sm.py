@@ -8,7 +8,7 @@
 ###########################################################
 
 from flexbe_core import Behavior, Autonomy, OperatableStateMachine, ConcurrencyContainer, PriorityContainer, Logger
-from meka_flexbe_states.WaitForDoldButton import WaitForDoldButton
+from meka_flexbe_states.HandoverAdaptionReset import HandoverAdaptionReset
 from meka_flexbe_states.WaitForForce import WaitForForceState
 from flexbe_states.wait_state import WaitState
 from meka_flexbe_behaviors.deterministicgazehandhandface_sm import DeterministicGazeHandHandFaceSM
@@ -19,12 +19,14 @@ from meka_flexbe_states.GazeAtReturn import GazeAtTargetReturn
 from flexbe_states.subscriber_state import SubscriberState
 from meka_flexbe_states.GroupToPosture import GroupToPosture
 from meka_flexbe_behaviors.deterministicgazeiotpface_sm import DeterministicGazeiOTPFaceSM
-from meka_flexbe_states.HandoverAdaptionReset import HandoverAdaptionReset
 from meka_flexbe_states.GazeAt import GazeAtTarget
 from meka_flexbe_states.StopHandTracking import StopHandTracking
 from meka_flexbe_states.AdjustTorso import AdjustTorso
 from meka_flexbe_states.InitHandTracking import InitHandTracking
 from meka_flexbe_states.ToggleHandState import ToggleHandState
+from meka_flexbe_states.RemoteRecord import RemoteRecord
+from meka_flexbe_states.WaitForDoldButton import WaitForDoldButton
+from meka_flexbe_states.RemoteRecordStop import RemoteRecordStop
 # Additional imports can be added inside the following tags
 # [MANUAL_IMPORT]
 
@@ -49,6 +51,7 @@ class adaptive_handover_gazeSM(Behavior):
 		self.add_parameter('hand', 'right')
 		self.add_parameter('carrying', False)
 		self.add_parameter('stop_dist', 1.1)
+		self.add_parameter('participant_id', 1)
 
 		# references to used behaviors
 		self.add_behavior(DeterministicGazeHandHandFaceSM, 'WaitContactGazeatHumanHand/DeterministicGazeHandHandFace')
@@ -439,11 +442,11 @@ class adaptive_handover_gazeSM(Behavior):
 
 
 		with _state_machine:
-			# x:48 y:37
-			OperatableStateMachine.add('start_button',
-										WaitForDoldButton(dold_button_topic='/dold_driver/state'),
-										transitions={'done': 'resetAdaption'},
-										autonomy={'done': Autonomy.Off})
+			# x:45 y:190
+			OperatableStateMachine.add('resetAdaption',
+										HandoverAdaptionReset(topic='/do_adaption'),
+										transitions={'succeeded': 'start_button', 'error': 'resetAdaption'},
+										autonomy={'succeeded': Autonomy.Off, 'error': Autonomy.Off})
 
 			# x:535 y:360
 			OperatableStateMachine.add('WaitContactGazeatHumanHand',
@@ -462,14 +465,8 @@ class adaptive_handover_gazeSM(Behavior):
 			# x:63 y:332
 			OperatableStateMachine.add('RetreatGaze',
 										_sm_retreatgaze_10,
-										transitions={'finished': 'start_button'},
+										transitions={'finished': 'stopRecording'},
 										autonomy={'finished': Autonomy.Inherit})
-
-			# x:216 y:38
-			OperatableStateMachine.add('resetAdaption',
-										HandoverAdaptionReset(topic='/do_adaption'),
-										transitions={'succeeded': 'AdjustTorso', 'error': 'start_button'},
-										autonomy={'succeeded': Autonomy.Off, 'error': Autonomy.Off})
 
 			# x:466 y:40
 			OperatableStateMachine.add('AdjustTorso',
@@ -503,6 +500,25 @@ class adaptive_handover_gazeSM(Behavior):
 										transitions={'finished': 'ToggleHandGaze', 'failed': 'WaitContactGazeatHumanHand'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
 										remapping={'carrying': 'carrying'})
+
+			# x:282 y:47
+			OperatableStateMachine.add('startRecording',
+										RemoteRecord(topic='/meka/rosbagremote/record/named', pid=self.participant_id),
+										transitions={'done': 'AdjustTorso'},
+										autonomy={'done': Autonomy.Off},
+										remapping={'carrying': 'carrying'})
+
+			# x:75 y:41
+			OperatableStateMachine.add('start_button',
+										WaitForDoldButton(dold_button_topic='/dold_driver/state'),
+										transitions={'done': 'startRecording'},
+										autonomy={'done': Autonomy.Off})
+
+			# x:274 y:255
+			OperatableStateMachine.add('stopRecording',
+										RemoteRecordStop(topic='/meka/rosbagremote/record/named'),
+										transitions={'done': 'resetAdaption'},
+										autonomy={'done': Autonomy.Off})
 
 
 		return _state_machine
