@@ -27,6 +27,8 @@ from meka_flexbe_states.ToggleHandState import ToggleHandState
 from meka_flexbe_states.RemoteRecord import RemoteRecord
 from meka_flexbe_states.WaitForDoldButton import WaitForDoldButton
 from meka_flexbe_states.RemoteRecordStop import RemoteRecordStop
+from flexbe_states.flexible_check_condition_state import FlexibleCheckConditionState
+from flexbe_states.calculation_state import CalculationState
 # Additional imports can be added inside the following tags
 # [MANUAL_IMPORT]
 
@@ -52,6 +54,7 @@ class adaptive_handover_gazeSM(Behavior):
 		self.add_parameter('carrying', False)
 		self.add_parameter('stop_dist', 1.1)
 		self.add_parameter('participant_id', 1)
+		self.add_parameter('num_runs', 1)
 
 		# references to used behaviors
 		self.add_behavior(DeterministicGazeHandHandFaceSM, 'WaitContactGazeatHumanHand/DeterministicGazeHandHandFace')
@@ -72,6 +75,8 @@ class adaptive_handover_gazeSM(Behavior):
 		# x:35 y:461
 		_state_machine = OperatableStateMachine(outcomes=['finished'])
 		_state_machine.userdata.carrying = self.carrying
+		_state_machine.userdata.num_runs = self.num_runs
+		_state_machine.userdata.run_count = 0
 
 		# Additional creation code can be added inside the following tags
 		# [MANUAL_CREATE]
@@ -91,7 +96,7 @@ class adaptive_handover_gazeSM(Behavior):
 
 			# x:128 y:194
 			OperatableStateMachine.add('ReopenOnFail',
-										GroupToPosture(hand='right', group='hand', posture='little_closed', posture_path='', non_blocking=True),
+										GroupToPosture(hand='right', group='hand', posture='little_closed', posture_path='', non_blocking=False),
 										transitions={'success': 'failed', 'failure': 'failed'},
 										autonomy={'success': Autonomy.Off, 'failure': Autonomy.Off})
 
@@ -283,7 +288,7 @@ class adaptive_handover_gazeSM(Behavior):
 		with _sm_pushinhandgazeathuman_7:
 			# x:47 y:142
 			OperatableStateMachine.add('HandoverAdaptionExecPush',
-										HandoverAdaptionExec(command=0, topic='/do_adaption', reality_damp=0.4, terminate_dist_override=0.06, terminate_timeout_override=1.0, fixed_orientation=True, terminate=True, use_reference_trajectory=False),
+										HandoverAdaptionExec(command=0, topic='/do_adaption', reality_damp=0.4, terminate_dist_override=0.07, terminate_timeout_override=1.0, fixed_orientation=True, terminate=True, use_reference_trajectory=False),
 										transitions={'succeeded': 'finished', 'error': 'failed'},
 										autonomy={'succeeded': Autonomy.Off, 'error': Autonomy.Off})
 
@@ -442,7 +447,7 @@ class adaptive_handover_gazeSM(Behavior):
 
 
 		with _state_machine:
-			# x:45 y:190
+			# x:70 y:24
 			OperatableStateMachine.add('resetAdaption',
 										HandoverAdaptionReset(topic='/do_adaption'),
 										transitions={'succeeded': 'start_button', 'error': 'resetAdaption'},
@@ -462,7 +467,7 @@ class adaptive_handover_gazeSM(Behavior):
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
 										remapping={'carrying': 'carrying'})
 
-			# x:63 y:332
+			# x:289 y:559
 			OperatableStateMachine.add('RetreatGaze',
 										_sm_retreatgaze_10,
 										transitions={'finished': 'stopRecording'},
@@ -508,17 +513,31 @@ class adaptive_handover_gazeSM(Behavior):
 										autonomy={'done': Autonomy.Off},
 										remapping={'carrying': 'carrying'})
 
-			# x:75 y:41
+			# x:76 y:114
 			OperatableStateMachine.add('start_button',
 										WaitForDoldButton(dold_button_topic='/dold_driver/state'),
 										transitions={'done': 'startRecording'},
 										autonomy={'done': Autonomy.Off})
 
-			# x:274 y:255
+			# x:93 y:539
 			OperatableStateMachine.add('stopRecording',
 										RemoteRecordStop(topic='/meka/rosbagremote/record/named'),
-										transitions={'done': 'resetAdaption'},
+										transitions={'done': 'incrementRunCount'},
 										autonomy={'done': Autonomy.Off})
+
+			# x:59 y:241
+			OperatableStateMachine.add('checkNumRuns',
+										FlexibleCheckConditionState(predicate=lambda x: 2*x[0] <= x[1], input_keys=['num_runs', 'run_count']),
+										transitions={'true': 'start_button', 'false': 'startRecording'},
+										autonomy={'true': Autonomy.Off, 'false': Autonomy.Off},
+										remapping={'num_runs': 'num_runs', 'run_count': 'run_count'})
+
+			# x:75 y:340
+			OperatableStateMachine.add('incrementRunCount',
+										CalculationState(calculation=lambda x: x + 1),
+										transitions={'done': 'checkNumRuns'},
+										autonomy={'done': Autonomy.Off},
+										remapping={'input_value': 'run_count', 'output_value': 'run_count'})
 
 
 		return _state_machine
