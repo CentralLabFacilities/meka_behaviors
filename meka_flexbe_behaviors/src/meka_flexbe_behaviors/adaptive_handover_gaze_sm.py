@@ -29,6 +29,7 @@ from meka_flexbe_states.WaitForDoldButton import WaitForDoldButton
 from meka_flexbe_states.RemoteRecordStop import RemoteRecordStop
 from flexbe_states.flexible_check_condition_state import FlexibleCheckConditionState
 from flexbe_states.calculation_state import CalculationState
+from meka_flexbe_states.SetKey import SetKey
 # Additional imports can be added inside the following tags
 # [MANUAL_IMPORT]
 
@@ -473,7 +474,7 @@ class adaptive_handover_gazeSM(Behavior):
 										transitions={'finished': 'stopRecording'},
 										autonomy={'finished': Autonomy.Inherit})
 
-			# x:466 y:40
+			# x:509 y:41
 			OperatableStateMachine.add('AdjustTorso',
 										_sm_adjusttorso_9,
 										transitions={'finished': 'InitHandTracking'},
@@ -506,17 +507,17 @@ class adaptive_handover_gazeSM(Behavior):
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit},
 										remapping={'carrying': 'carrying'})
 
-			# x:282 y:47
+			# x:356 y:51
 			OperatableStateMachine.add('startRecording',
 										RemoteRecord(topic='/meka/rosbagremote/record/named', pid=self.participant_id),
 										transitions={'done': 'AdjustTorso'},
 										autonomy={'done': Autonomy.Off},
 										remapping={'carrying': 'carrying'})
 
-			# x:76 y:114
+			# x:46 y:117
 			OperatableStateMachine.add('start_button',
 										WaitForDoldButton(dold_button_topic='/dold_driver/state'),
-										transitions={'done': 'startRecording'},
+										transitions={'done': 'zeroCounter'},
 										autonomy={'done': Autonomy.Off})
 
 			# x:93 y:539
@@ -525,19 +526,26 @@ class adaptive_handover_gazeSM(Behavior):
 										transitions={'done': 'incrementRunCount'},
 										autonomy={'done': Autonomy.Off})
 
-			# x:59 y:241
+			# x:137 y:247
 			OperatableStateMachine.add('checkNumRuns',
 										FlexibleCheckConditionState(predicate=lambda x: 2*x[0] <= x[1], input_keys=['num_runs', 'run_count']),
 										transitions={'true': 'start_button', 'false': 'startRecording'},
 										autonomy={'true': Autonomy.Off, 'false': Autonomy.Off},
 										remapping={'num_runs': 'num_runs', 'run_count': 'run_count'})
 
-			# x:75 y:340
+			# x:77 y:403
 			OperatableStateMachine.add('incrementRunCount',
 										CalculationState(calculation=lambda x: x + 1),
 										transitions={'done': 'checkNumRuns'},
 										autonomy={'done': Autonomy.Off},
 										remapping={'input_value': 'run_count', 'output_value': 'run_count'})
+
+			# x:210 y:86
+			OperatableStateMachine.add('zeroCounter',
+										SetKey(value=0),
+										transitions={'done': 'startRecording'},
+										autonomy={'done': Autonomy.Off},
+										remapping={'output_key': 'run_count'})
 
 
 		return _state_machine
