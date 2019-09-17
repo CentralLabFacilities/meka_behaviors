@@ -30,7 +30,7 @@ class ToggleHandState(EventState):
         self._stiffness_control = MekaStiffnessControl("stiffness_control")
 
     def toggle_hand(self):
-        Logger.loginfo('toggling hand to ' + 'open' if self._carrying else 'close')
+        Logger.logerr('toggling hand to ' + 'open' if self._carrying else 'close')
         return self._meka_posture.execute(self._hand_name, 'open' if self._carrying else 'close')
 
     def execute(self, d):    

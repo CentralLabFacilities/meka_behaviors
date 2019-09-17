@@ -12,7 +12,7 @@ class HandoverAdaptionExec(EventState):
     ''' Calls jacobian-control node for adaption. '''
 
     def __init__(self, command=0, topic='/do_adaption', reality_damp=0.3, terminate_dist_override=0.0, terminate_timeout_override=0.0, fixed_orientation=True,
-                 terminate=True, use_reference_trajectory=True):
+                 terminate=True, use_reference_trajectory=True, joint_speed_limit=0.1):
 
         super(HandoverAdaptionExec, self).__init__(outcomes = ['succeeded', 'error'])
 
@@ -23,6 +23,7 @@ class HandoverAdaptionExec(EventState):
         self._terminate_timeout_override = terminate_timeout_override       # 0.5
         self._fixed_orientation = fixed_orientation
         self._terminate = terminate
+        self._joint_speed_limit = joint_speed_limit
 
         self._use_reference_trajectory =use_reference_trajectory
 
@@ -53,6 +54,7 @@ class HandoverAdaptionExec(EventState):
         goal.terminate = self._terminate
         goal.terminate_dist_override = self._terminate_dist_override
         goal.terminate_timeout_override = self._terminate_timeout_override
+        goal.joint_speed_limit = self._joint_speed_limit
 
         goal.use_reference_trajectory = self._use_reference_trajectory
         Logger.loginfo('sending goal: %s' %str(goal))
@@ -64,4 +66,5 @@ class HandoverAdaptionExec(EventState):
             self._error = True
 
     def on_exit(self, userdata):
+        self._client.cancel_all_goals()
         rospy.loginfo('Exit adaption.')

@@ -12,6 +12,7 @@ from geometry_msgs.msg import WrenchStamped
 author: jpohlmeyer, decluttered a little by llach
 '''
 
+my_counter = 0
 
 class WaitForForceState(EventState):
     '''
@@ -124,10 +125,12 @@ class WaitForForceState(EventState):
 
     def execute(self, d):
         '''Execute this state'''
-
         if self.check_force(threshold=self._threshold, group_name=self._group, timeout=120.0):
             Logger.loginfo('got force!')
             return 'success'
+            
+    def on_exit(self, d):
+        pass
 
     def on_enter(self, d):
         '''Upon entering the state check the value of the given topic'''
