@@ -101,6 +101,8 @@ class AdjustTorso(EventState):
         # store latest faces -> only if we got some, we adapt j1
         if self.with_j1:
             faces = self._subs.get_last_msg(self.FACES_TOPIC)
+            if  rospy.Time.now() - faces.header.stamp > rospy.Duration(1):
+                faces = None
             got_faces = faces is not None and faces.count > 0
 
         if ts is not None:

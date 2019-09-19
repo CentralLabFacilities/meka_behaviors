@@ -51,7 +51,7 @@ class adaptive_handover_gazeSM(Behavior):
 		self.add_parameter('carrying', False)
 		self.add_parameter('stop_dist', 1.1)
 		self.add_parameter('participant_id', 1)
-		self.add_parameter('num_runs', 1)
+		self.add_parameter('num_runs', 10)
 
 		# references to used behaviors
 		self.add_behavior(DeterministicGazeHandHandFaceSM, 'AdaptionGazeAtHuman/Gaze/gazeUntiliOTP/DeterministicGazeHandHandFace')

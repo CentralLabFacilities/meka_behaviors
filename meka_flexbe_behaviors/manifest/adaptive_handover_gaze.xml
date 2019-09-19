@@ -35,7 +35,7 @@
 			<max value="100" />
 		</param>
 
-		<param type="numeric" name="num_runs" default="1" label="num_runs" hint="Sets the num_runs">
+		<param type="numeric" name="num_runs" default="10" label="num_runs" hint="Sets the num_runs">
 			<min value="1" />
 			<max value="10" />
 		</param>
