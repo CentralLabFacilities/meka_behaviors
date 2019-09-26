@@ -8,9 +8,8 @@
 ###########################################################
 
 from flexbe_core import Behavior, Autonomy, OperatableStateMachine, ConcurrencyContainer, PriorityContainer, Logger
-from meka_flexbe_states.WaitForForce import WaitForForceState
-from flexbe_states.wait_state import WaitState
-from flexbe_states.log_state import LogState
+from meka_flexbe_states.InitHandTracking import InitHandTracking
+from meka_flexbe_states.CheckHandNearness import CheckHandNearness
 # Additional imports can be added inside the following tags
 # [MANUAL_IMPORT]
 
@@ -48,47 +47,27 @@ class quick_testSM(Behavior):
 	def create(self):
 		# x:30 y:365, x:130 y:365
 		_state_machine = OperatableStateMachine(outcomes=['finished', 'failed'])
-		_state_machine.userdata.carry = self.global_bool
+		_state_machine.userdata.carrying = True
 
 		# Additional creation code can be added inside the following tags
 		# [MANUAL_CREATE]
 		
 		# [/MANUAL_CREATE]
 
-		# x:30 y:365, x:130 y:365, x:230 y:365, x:330 y:365, x:430 y:365, x:530 y:365
-		_sm_container_0 = ConcurrencyContainer(outcomes=['finished', 'failed', 'timeout'], conditions=[
-										('finished', [('wff', 'success')]),
-										('failed', [('wff', 'failure')]),
-										('timeout', [('w8', 'done')])
-										])
-
-		with _sm_container_0:
-			# x:102 y:87
-			OperatableStateMachine.add('wff',
-										WaitForForceState(hand='right', force_threshold=1.5),
-										transitions={'success': 'finished', 'failure': 'failed'},
-										autonomy={'success': Autonomy.Off, 'failure': Autonomy.Off})
-
-			# x:254 y:86
-			OperatableStateMachine.add('w8',
-										WaitState(wait_time=3),
-										transitions={'done': 'timeout'},
-										autonomy={'done': Autonomy.Off})
-
-
 
 		with _state_machine:
-			# x:71 y:110
-			OperatableStateMachine.add('Container',
-										_sm_container_0,
-										transitions={'finished': 'finished', 'failed': 'failed', 'timeout': 'log'},
-										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit, 'timeout': Autonomy.Inherit})
+			# x:52 y:142
+			OperatableStateMachine.add('init',
+										InitHandTracking(),
+										transitions={'done': 'check_near'},
+										autonomy={'done': Autonomy.Off},
+										remapping={'carrying': 'carrying'})
 
-			# x:313 y:108
-			OperatableStateMachine.add('log',
-										LogState(text='timeout', severity=Logger.REPORT_HINT),
-										transitions={'done': 'failed'},
-										autonomy={'done': Autonomy.Off})
+			# x:314 y:170
+			OperatableStateMachine.add('check_near',
+										CheckHandNearness(dist_threshold=0.12, n_steps=10, target_frame='handover_frame_right'),
+										transitions={'near': 'finished'},
+										autonomy={'near': Autonomy.Off})
 
 
 		return _state_machine

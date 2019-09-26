@@ -7,6 +7,7 @@ import rospkg
 from flexbe_core import Logger, EventState
 from flexbe_core.proxy import ProxySubscriberCached
 from geometry_msgs.msg import WrenchStamped
+from std_msgs.msg import Float32
 
 '''
 author: MZB & llach
@@ -17,25 +18,30 @@ class ForceMonitor(EventState):
     Monitors Force (derivative).
     '''
 
-    def __init__(self, force_threshold=40.0, topic='/force_helper'):
+    def __init__(self, force_threshold=30.0, force_topic='/force_helper', arm_topic='/force_helper/arm'):
         '''Constructor'''
         super(ForceMonitor, self).__init__(outcomes=['success'])
 
         self._threshold = force_threshold
-        self._topic = topic
-        self._sub = ProxySubscriberCached({self._topic: WrenchStamped})
+        self._force_topic = force_topic
+        self._arm_topic = arm_topic
+        self._sub = ProxySubscriberCached({self._force_topic: WrenchStamped})
+        self._sub = ProxySubscriberCached({self._arm_topic: Float32})
 
 
     def execute(self, d):
         '''Execute this state'''
-        msg = self._sub.get_last_msg(self._topic)
-        current_force = np.array([np.clip(msg.wrench.force.x, -99, 0), np.clip(msg.wrench.force.y, 0, 99), msg.wrench.force.z*0.5])
-        
+        force_msg = self._sub.get_last_msg(self._force_topic)
+        arm_msg = self._sub.get_last_msg(self._arm_topic)
+
+        current_force = np.array([np.clip(force_msg.wrench.force.x, -99, 0), np.clip(force_msg.wrench.force.y, 0, 99), force_msg.wrench.force.z*0.5])
+        current_acc = arm_msg.data
+
         #y contains gravity here
-        #current_force = msg.wrench.force.y
+        #current_force = force_msg.wrench.force.y
         force_norm = 0.5*np.linalg.norm(current_force)
 
-        if force_norm > self._threshold:
+        if force_norm > self._threshold* (0.5+current_acc):
             Logger.loginfo('got force: force_norm %r _threshold %r' %(force_norm , self._threshold))
             return 'success'
 
