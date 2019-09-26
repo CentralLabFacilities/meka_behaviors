@@ -11,7 +11,7 @@ class GazeAtTarget(EventState):
 
     ''' Calls gaze relay. '''
 
-    def __init__(self, target='face', duration_type='long', use_timeout=True):
+    def __init__(self, target='face', duration_type='long', force=False, use_timeout=True):
         assert duration_type == 'long' or duration_type == 'short', 'unknown duration type: ' + str(duration_type)
 
         super(GazeAtTarget, self).__init__(outcomes = ['target_not_found'])
@@ -20,6 +20,7 @@ class GazeAtTarget(EventState):
         self._pub = ProxyPublisher({self._gaze_topic: GazeRelayTarget})
         self._target = target
         self._use_timeout = use_timeout
+	self._force = force
 
         if duration_type == 'long':
             self._mean_length =  1.4
@@ -70,6 +71,8 @@ class GazeAtTarget(EventState):
             tar = GazeRelayTarget()
             tar.person_id = 0
             tar.gaze_target = self.target_map[self._target]
+            tar.force = self._force
+            tar.min_duration = self._duration
             self._pub.publish(self._gaze_topic, tar)
         else:
             Logger.loginfo('gazing at ' + str(self._target) + ' reached timeout!')
