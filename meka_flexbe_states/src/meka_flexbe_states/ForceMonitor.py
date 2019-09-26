@@ -20,7 +20,7 @@ class ForceMonitor(EventState):
 
     def __init__(self, force_threshold=30.0, force_topic='/force_helper', arm_topic='/force_helper/arm'):
         '''Constructor'''
-        super(ForceMonitor, self).__init__(outcomes=['success'])
+        super(ForceMonitor, self).__init__(outcomes=['success'], input_keys=['carrying'])
 
         self._threshold = force_threshold
         self._force_topic = force_topic
@@ -37,11 +37,16 @@ class ForceMonitor(EventState):
         current_force = np.array([np.clip(force_msg.wrench.force.x, -99, 0), np.clip(force_msg.wrench.force.y, 0, 99), force_msg.wrench.force.z*0.5])
         current_acc = arm_msg.data
 
+        current_threshold = self._threshold * (0.5+current_acc)
+
+        if d.carrying:
+            current_threshold *= 2
+
         #y contains gravity here
         #current_force = force_msg.wrench.force.y
         force_norm = 0.5*np.linalg.norm(current_force)
 
-        if force_norm > self._threshold* (0.5+current_acc):
-            Logger.loginfo('got force: force_norm %r _threshold %r' %(force_norm , self._threshold))
+        if force_norm > current_threshold:
+            Logger.loghint('got force: force_norm %r _threshold %r adapted thresh %r' %(force_norm , self._threshold, current_threshold))
             return 'success'
 

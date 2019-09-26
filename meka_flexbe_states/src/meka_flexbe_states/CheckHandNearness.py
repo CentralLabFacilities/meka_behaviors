@@ -73,7 +73,7 @@ class CheckHandNearness(EventState):
         self._dist_buf.appendleft(dist)
 
         if len(self._dist_buf) == self._n_steps and (np.array(self._dist_buf) < self._dist_threshold).all():
-            Logger.loginfo('hand nearness threshold reached!')
+            Logger.loghint('hand nearness threshold reached!')
             return 'near'
 
 
