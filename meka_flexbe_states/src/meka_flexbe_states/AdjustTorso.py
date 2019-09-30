@@ -83,7 +83,8 @@ class AdjustTorso(EventState):
         elif people is None:
             Logger.loginfo('no people')
         elif len(people.people) < 1:
-            Logger.loginfo('no people')
+            #Logger.loginfo('no people')
+            pass
         else:
             got_it = True
             Logger.loginfo('Got initial people and torso state.')
@@ -101,7 +102,7 @@ class AdjustTorso(EventState):
         # store latest faces -> only if we got some, we adapt j1
         if self.with_j1:
             faces = self._subs.get_last_msg(self.FACES_TOPIC)
-            if  rospy.Time.now() - faces.header.stamp > rospy.Duration(1):
+            if  faces is not None and rospy.Time.now() - faces.header.stamp > rospy.Duration(1):
                 faces = None
             got_faces = faces is not None and faces.count > 0
 

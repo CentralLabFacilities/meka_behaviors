@@ -18,7 +18,7 @@ class ForceMonitor(EventState):
     Monitors Force (derivative).
     '''
 
-    def __init__(self, force_threshold=30.0, force_topic='/force_helper', arm_topic='/force_helper/arm'):
+    def __init__(self, force_threshold=0.5, force_topic='/force_helper', arm_topic='/force_helper/arm'):
         '''Constructor'''
         super(ForceMonitor, self).__init__(outcomes=['success'], input_keys=['carrying'])
 
@@ -37,17 +37,18 @@ class ForceMonitor(EventState):
         if arm_msg is None or force_msg is None:
             return
 
-        current_force = np.array([np.clip(force_msg.wrench.force.x, -99, 0), np.clip(force_msg.wrench.force.y, 0, 99), force_msg.wrench.force.z*0.5])
-        current_acc = arm_msg.data
+        #current_force = np.array([np.clip(force_msg.wrench.force.x, -99, 0), np.clip(force_msg.wrench.force.y, 0, 99), force_msg.wrench.force.z*0.5])
+        force_norm = arm_msg.data
 
-        current_threshold = self._threshold * (0.5+current_acc)
+        current_threshold = self._threshold # * (0.5+current_acc)
 
         if d.carrying:
-            current_threshold *= 2
+            current_threshold *= 1.5
 
         #y contains gravity here
         #current_force = force_msg.wrench.force.y
-        force_norm = 0.5*np.linalg.norm(current_force)
+        #force_norm = np.linalg.norm(current_force)
+        #Logger.loginfo('time: %r  got force: force_norm %r _threshold %r adapted thresh %r' % (rospy.Time.now().nsecs/1000000, force_norm, self._threshold, current_threshold))
 
         if force_norm > current_threshold:
             Logger.loghint('got force: force_norm %r _threshold %r adapted thresh %r' %(force_norm , self._threshold, current_threshold))
