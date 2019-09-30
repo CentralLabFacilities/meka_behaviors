@@ -183,7 +183,6 @@ class AdjustTorso(EventState):
             if trans is None:
                 print('trans none')
 
-
             faces_pos = -np.arctan2(trans.point.z - 0.7, trans.point.x) / 2
 
             j1cmd = np.clip(faces_pos, self.LIMITS[self.JOINT_NAMES[1]][0], self.LIMITS[self.JOINT_NAMES[1]][1])
@@ -195,7 +194,7 @@ class AdjustTorso(EventState):
 
         point.time_from_start = rospy.Duration(max(dur) / self.SPEED_SCALE)
         traj.points.append(point)
-        Logger.loginfo('new torso state: ' + str(point.positions))
+        # Logger.loginfo('new torso state: ' + str(point.positions))
 
         self._pub.publish(self.TORSO_COMMAND_TOPIC, traj)
 

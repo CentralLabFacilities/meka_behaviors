@@ -33,6 +33,8 @@ class GazeAtTargetReturn(EventState):
             self._min_length = 0.27
             self._max_length = 1.27
 
+        self._timeout_reached_print = False
+
         self._duration = 0
         self._start_time = rospy.get_rostime()
 
@@ -52,6 +54,7 @@ class GazeAtTargetReturn(EventState):
         '''Upon entering the state, save the start time and calculate the duration.'''
 
         self._start_time = rospy.get_rostime()
+        self._timeout_reached_print = False
 
         self._duration = random.gauss(self._mean_length, self._standard_deviation)
         self._duration = max(self._duration, self._min_length)
@@ -75,6 +78,9 @@ class GazeAtTargetReturn(EventState):
             tar.min_duration = self._duration
             self._pub.publish(self._gaze_topic, tar)
         else:
+            if not self._timeout_reached_print:
+                Logger.loginfo('gazing at ' + str(self._target) + ' reached timeout!')
+                self._timeout_reached_print = True
             # Logger.loginfo('gazing at ' + str(self._target) + ' reached timeout! publishing neutral target.')
             # tar = GazeRelayTarget()
             # tar.person_id = 0
