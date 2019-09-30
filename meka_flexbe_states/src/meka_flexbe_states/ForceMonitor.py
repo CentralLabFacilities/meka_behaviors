@@ -34,6 +34,9 @@ class ForceMonitor(EventState):
         force_msg = self._sub.get_last_msg(self._force_topic)
         arm_msg = self._sub.get_last_msg(self._arm_topic)
 
+        if arm_msg is None or force_msg is None:
+            return
+
         current_force = np.array([np.clip(force_msg.wrench.force.x, -99, 0), np.clip(force_msg.wrench.force.y, 0, 99), force_msg.wrench.force.z*0.5])
         current_acc = arm_msg.data
 
