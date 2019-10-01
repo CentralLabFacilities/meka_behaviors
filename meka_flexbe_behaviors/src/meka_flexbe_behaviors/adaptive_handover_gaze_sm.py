@@ -128,7 +128,7 @@ class adaptive_handover_gazeSM(Behavior):
 			# x:233 y:38
 			OperatableStateMachine.add('checkCarrying',
 										CheckConditionState(predicate=lambda x: x),
-										transitions={'true': 'KeepParaRunning', 'false': 'getAdaptionFeedback'},
+										transitions={'true': 'KeepParaRunning', 'false': 'CloseLittle'},
 										autonomy={'true': Autonomy.Off, 'false': Autonomy.Off},
 										remapping={'input_value': 'carrying'})
 
@@ -183,7 +183,7 @@ class adaptive_handover_gazeSM(Behavior):
 		with _sm_adaption_4:
 			# x:37 y:138
 			OperatableStateMachine.add('HandoverAdaptionExecPush',
-										HandoverAdaptionExec(command=0, topic='/do_adaption', reality_damp=0.6, terminate_dist_override=0.05, terminate_timeout_override=10.0, fixed_orientation=True, terminate=True, use_reference_trajectory=False, joint_speed_limit=0.08),
+										HandoverAdaptionExec(command=0, topic='/do_adaption', reality_damp=0.6, terminate_dist_override=0.045, terminate_timeout_override=10.0, fixed_orientation=True, terminate=True, use_reference_trajectory=False, joint_speed_limit=0.08),
 										transitions={'succeeded': 'wait', 'error': 'HandoverAdaptionExecPush'},
 										autonomy={'succeeded': Autonomy.Off, 'error': Autonomy.Off})
 
