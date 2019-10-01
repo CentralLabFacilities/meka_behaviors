@@ -18,27 +18,25 @@ class ForceMonitor(EventState):
     Monitors Force (derivative).
     '''
 
-    def __init__(self, force_threshold=0.5, force_topic='/force_helper', arm_topic='/force_helper/arm'):
+    def __init__(self, force_threshold=0.5, force_topic='/force_helper/result'):
         '''Constructor'''
         super(ForceMonitor, self).__init__(outcomes=['success'], input_keys=['carrying'])
 
         self._threshold = force_threshold
         self._force_topic = force_topic
-        self._arm_topic = arm_topic
-        self._sub = ProxySubscriberCached({self._force_topic: WrenchStamped})
-        self._sub = ProxySubscriberCached({self._arm_topic: Float32})
+        self._sub = ProxySubscriberCached({self._force_topic: Float32})
 
 
     def execute(self, d):
         '''Execute this state'''
         force_msg = self._sub.get_last_msg(self._force_topic)
-        arm_msg = self._sub.get_last_msg(self._arm_topic)
 
-        if arm_msg is None or force_msg is None:
+
+        if force_msg is None:
             return
 
         #current_force = np.array([np.clip(force_msg.wrench.force.x, -99, 0), np.clip(force_msg.wrench.force.y, 0, 99), force_msg.wrench.force.z*0.5])
-        force_norm = arm_msg.data
+        force_norm = force_msg.data
 
         current_threshold = self._threshold # * (0.5+current_acc)
 
