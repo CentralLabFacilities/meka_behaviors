@@ -256,7 +256,7 @@ class adaptive_handover_gazeSM(Behavior):
 
 			# x:256 y:162
 			OperatableStateMachine.add('forceInMotion',
-										ForceMonitor(force_threshold=0.2, force_topic='/force_helper/result'),
+										ForceMonitor(force_threshold=0.25, force_topic='/force_helper/result'),
 										transitions={'success': 'inMotionForce'},
 										autonomy={'success': Autonomy.Off},
 										remapping={'carrying': 'carrying'})
@@ -288,7 +288,7 @@ class adaptive_handover_gazeSM(Behavior):
 
 			# x:226 y:145
 			OperatableStateMachine.add('forceDuringMovement',
-										ForceMonitor(force_threshold=0.2, force_topic='/force_helper/result'),
+										ForceMonitor(force_threshold=0.25, force_topic='/force_helper/result'),
 										transitions={'success': 'finished'},
 										autonomy={'success': Autonomy.Off},
 										remapping={'carrying': 'carrying'})
